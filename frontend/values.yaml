@@ -1,0 +1,44 @@
+replicaCount: 2
+
+image:
+  repository: boicotaz/taskapp-frontend
+  pullPolicy: Always
+  tag: "5b8ff7d20fca98d068e360bed4238565f82d51dd"
+
+service:
+  type: ClusterIP
+  port: 80
+
+applicationPort: 80
+
+ingress:
+  enabled: true
+  path: /
+  pathType: Prefix
+  className: nginx
+
+backend:
+  serviceName: taskapp-backend
+  servicePort: 80
+
+hpa:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 10
+  keda:
+    prometheusAddress: "http://kube-prometheus-stack-prometheus.monitoring.svc.cluster.local:9090"
+    nginxRequestsPerSecond:
+      enabled: true
+      query: 'sum(rate(nginx_http_requests_total{namespace="default", pod=~"taskapp-frontend-.*"}[1m]))'
+      threshold: "5"
+
+serviceMonitor:
+  enabled: true
+
+resources: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

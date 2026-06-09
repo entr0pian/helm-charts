@@ -1,0 +1,5 @@
+apiVersion: v2
+name: crossplane-provider-config
+description: Crossplane AWS ProviderConfig for taskapp
+type: application
+version: 0.1.0

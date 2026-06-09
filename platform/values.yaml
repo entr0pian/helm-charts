@@ -1,0 +1,62 @@
+namespace: default
+
+clusterSecretStore:
+  name: aws-secrets-manager
+  aws:
+    region: eu-west-1
+    credentialsSecret:
+      name: aws-credentials
+      namespace: external-secrets
+
+externalSecrets:
+  clusterSecretStoreName: aws-secrets-manager
+  targetSecretName: taskapp-database-secret
+  # Path to the secret in AWS Secrets Manager.
+  # Expected JSON format: {"password": "<value>"}
+  secretPath: taskapp/dev/database
+
+awsCredentials:
+  secretName: taskapp-backend-aws-credentials
+  # Path to the secret in AWS Secrets Manager.
+  # Expected JSON format: {"aws_access_key_id": "<value>", "aws_secret_access_key": "<value>"}
+  # Leave empty to skip creating the ExternalSecret.
+  secretPath: ""
+
+crossplane:
+  # Path to the secret in AWS Secrets Manager.
+  # Expected JSON format: {"aws_access_key_id": "<value>", "aws_secret_access_key": "<value>"}
+  # Leave empty to skip creating the ExternalSecret, Provider, and ProviderConfig.
+  secretPath: ""
+  region: eu-west-1
+  provider:
+    package: xpkg.upbound.io/upbound/provider-aws-sqs:v1.14.0
+
+prometheusRules:
+  enabled: false
+
+grafanaDashboard:
+  enabled: false
+
+limitRange:
+  enabled: true
+  container:
+    # Injected into containers with no requests defined (frontend, database)
+    defaultRequest:
+      cpu: 200m
+      memory: 128Mi
+    # Injected into containers with no limits defined (frontend, database)
+    default:
+      cpu: 500m
+      memory: 256Mi
+    # Must be <= backend requests (cpu: 250m, memory: 64Mi)
+    min:
+      cpu: 50m
+      memory: 64Mi
+    # Must be >= backend limits (cpu: 1000m, memory: 256Mi)
+    max:
+      cpu: "2"
+      memory: 1Gi
+    # Backend ratio: cpu 1000m/250m = 4x, memory 256Mi/64Mi = 4x
+    maxLimitRequestRatio:
+      cpu: "4"
+      memory: "4"

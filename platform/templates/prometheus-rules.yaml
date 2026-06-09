@@ -1,0 +1,69 @@
+{{- if .Values.prometheusRules.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: taskapp-alerts
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+spec:
+  groups:
+    - name: taskapp.rules
+      rules:
+        - alert: OOMKilled
+          expr: |
+            kube_pod_container_status_last_terminated_reason{
+              reason="OOMKilled",
+              namespace="default"
+            } == 1
+          for: 0m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Container OOMKilled"
+            description: "Container {{`{{ $labels.container }}`}} in pod {{`{{ $labels.pod }}`}} was OOMKilled. Memory limit is too low or there is a memory leak."
+
+        - alert: HighCPUUtilization
+          expr: |
+            (
+              rate(container_cpu_usage_seconds_total{
+                namespace="default",
+                pod!=""
+              }[5m])
+              / on(namespace, pod)
+              sum by(namespace, pod) (
+                kube_pod_container_resource_limits{
+                  namespace="default",
+                  resource="cpu"
+                }
+              )
+            ) * 100 > 80
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High CPU utilization"
+            description: "Pod {{`{{ $labels.pod }}`}} is using {{`{{ $value | humanize }}`}}% of its CPU limit."
+
+        - alert: HighMemoryUtilization
+          expr: |
+            (
+              container_memory_working_set_bytes{
+                namespace="default",
+                pod!=""
+              }
+              / on(namespace, pod)
+              sum by(namespace, pod) (
+                kube_pod_container_resource_limits{
+                  namespace="default",
+                  resource="memory"
+                }
+              )
+            ) * 100 > 80
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High memory utilization"
+            description: "Pod {{`{{ $labels.pod }}`}} is using {{`{{ $value | humanize }}`}}% of its memory limit."
+{{- end }}

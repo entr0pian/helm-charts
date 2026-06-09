@@ -1,0 +1,11 @@
+apiVersion: v2
+name: taskapp-platform
+version: 0.1.0
+description: Cluster-wide platform policies for TaskApp (LimitRanges, etc.)
+
+type: application
+
+dependencies:
+  - name: taskapp-common
+    version: "0.1.0"
+    repository: "file://../common"

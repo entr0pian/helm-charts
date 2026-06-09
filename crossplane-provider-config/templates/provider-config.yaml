@@ -1,0 +1,11 @@
+apiVersion: aws.upbound.io/v1beta1
+kind: ProviderConfig
+metadata:
+  name: default
+spec:
+  credentials:
+    source: Secret
+    secretRef:
+      namespace: {{ .Values.credentialsSecret.namespace }}
+      name: {{ .Values.credentialsSecret.name }}
+      key: {{ .Values.credentialsSecret.key }}

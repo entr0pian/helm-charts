@@ -1,0 +1,29 @@
+replicaCount: 1
+
+image:
+  repository: postgres
+  pullPolicy: IfNotPresent
+  tag: "15"
+
+service:
+  type: ClusterIP
+  port: 5432
+
+persistence:
+  storageClassName: standard
+  accessMode: ReadWriteOnce
+  storage: 5Gi
+
+resources: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+db:
+  name: taskdb
+  user: taskuser
+
+dbSecretName: taskapp-database-secret

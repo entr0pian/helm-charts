@@ -1,0 +1,53 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}-seeder
+  labels:
+    app: {{ .Chart.Name }}
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+spec:
+  backoffLimit: 5
+  template:
+    metadata:
+      labels:
+        app: {{ .Chart.Name }}
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: seeder
+        image: postgres:15
+        command: ["sh", "-c"]
+        args:
+          - |
+            echo "Waiting..."
+            until pg_isready -h {{ .Release.Name }} -U $POSTGRES_USER -d $POSTGRES_DB; do
+              sleep 2
+            done
+
+            echo "Seeding..."
+            psql -h {{ .Release.Name }} -U $POSTGRES_USER -d $POSTGRES_DB -f /seed/seed.sql
+        env:
+        - name: POSTGRES_DB
+          valueFrom:
+            configMapKeyRef:
+              name: {{ .Release.Name }}-app-config
+              key: POSTGRES_DB
+        - name: POSTGRES_USER
+          valueFrom:
+            configMapKeyRef:
+              name: {{ .Release.Name }}-app-config
+              key: POSTGRES_USER
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.dbSecretName }}
+              key: POSTGRES_PASSWORD
+        volumeMounts:
+        - name: seed-volume
+          mountPath: /seed
+      volumes:
+      - name: seed-volume
+        configMap:
+          name: {{ .Release.Name }}-seed-config

@@ -1,0 +1,21 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "backend-operator.fullname" . }}-backend-viewer-role
+  labels:
+  {{- include "backend-operator.labels" . | nindent 4 }}
+rules:
+- apiGroups:
+  - apps.taskapp.io
+  resources:
+  - backends
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - apps.taskapp.io
+  resources:
+  - backends/status
+  verbs:
+  - get

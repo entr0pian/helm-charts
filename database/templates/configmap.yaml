@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-seed-config
+  labels:
+    app: {{ .Chart.Name }}
+data:
+  seed.sql: |
+    -- Add your seed SQL commands here
+    CREATE TABLE IF NOT EXISTS tasks (
+      id SERIAL PRIMARY KEY,
+      title VARCHAR(255) NOT NULL,
+      description TEXT,
+      status VARCHAR(50) NOT NULL
+    );

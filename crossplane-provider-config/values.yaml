@@ -1,0 +1,4 @@
+credentialsSecret:
+  namespace: crossplane-system
+  name: crossplane-aws-credentials
+  key: creds

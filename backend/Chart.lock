@@ -1,0 +1,6 @@
+dependencies:
+- name: taskapp-common
+  repository: file://../common
+  version: 0.1.0
+digest: sha256:95a91107bfa3ff9a69370c30cb8969d6b1542cd85f4af4ea0da64aeeb58a4304
+generated: "2026-04-20T21:27:50.063962843+03:00"

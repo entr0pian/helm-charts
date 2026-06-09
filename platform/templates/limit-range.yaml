@@ -1,0 +1,27 @@
+{{- if .Values.limitRange.enabled }}
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: {{ .Release.Name }}-limit-range
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "taskapp.labels" . | nindent 4 }}
+spec:
+  limits:
+    - type: Container
+      defaultRequest:
+        cpu: {{ .Values.limitRange.container.defaultRequest.cpu }}
+        memory: {{ .Values.limitRange.container.defaultRequest.memory }}
+      default:
+        cpu: {{ .Values.limitRange.container.default.cpu }}
+        memory: {{ .Values.limitRange.container.default.memory }}
+      min:
+        cpu: {{ .Values.limitRange.container.min.cpu }}
+        memory: {{ .Values.limitRange.container.min.memory }}
+      max:
+        cpu: {{ .Values.limitRange.container.max.cpu | quote }}
+        memory: {{ .Values.limitRange.container.max.memory }}
+      maxLimitRequestRatio:
+        cpu: {{ .Values.limitRange.container.maxLimitRequestRatio.cpu | quote }}
+        memory: {{ .Values.limitRange.container.maxLimitRequestRatio.memory | quote }}
+{{- end }}

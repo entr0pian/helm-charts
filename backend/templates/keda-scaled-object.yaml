@@ -1,0 +1,22 @@
+{{- if and .Values.keda.enabled .Values.sqs.enabled }}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ .Release.Name }}-scaler
+  labels:
+    {{- include "taskapp.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    name: {{ .Release.Name }}
+  minReplicaCount: {{ .Values.keda.minReplicaCount }}
+  maxReplicaCount: {{ .Values.keda.maxReplicaCount }}
+  cooldownPeriod: {{ .Values.keda.cooldownPeriod }}
+  triggers:
+    - type: aws-sqs-queue
+      authenticationRef:
+        name: {{ .Release.Name }}-sqs-auth
+      metadata:
+        queueURL: {{ .Values.sqs.queueUrl | quote }}
+        queueLength: {{ .Values.keda.queueLength | quote }}
+        awsRegion: {{ .Values.sqs.region | quote }}
+{{- end }}

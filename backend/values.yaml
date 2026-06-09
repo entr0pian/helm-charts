@@ -1,0 +1,60 @@
+replicaCount: 2
+
+image:
+  repository: boicotaz/taskapp-backend
+  pullPolicy: Always
+  tag: "3d0b1eb11bca3feb3030c3e02b5a3c8e5075b117"
+
+applicationPort: 8080
+
+# Seconds to sleep in the preStop hook before SIGTERM is sent.
+# This gives kube-proxy time to propagate the endpoint removal so no new
+# requests are routed to the pod while it is shutting down.
+preStopSleepSeconds: 5
+
+readinessProbe:
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  failureThreshold: 3
+
+service:
+  type: ClusterIP
+  port: 80
+
+db:
+  host: taskapp-database
+  port: 5432
+  secretName: taskapp-database-secret
+  name: taskdb
+  user: taskuser
+
+awsCredentials:
+  enabled: false
+  secretName: taskapp-backend-aws-credentials
+
+sqs:
+  queueUrl: ""
+  region: eu-west-1
+  maxMessages: 1
+  workSleepSeconds: 10
+
+keda:
+  enabled: false
+  minReplicaCount: 1
+  maxReplicaCount: 10
+  queueLength: "5"
+  cooldownPeriod: 300
+
+resources:
+  requests:
+    memory: "64Mi"
+    cpu: "250m"
+  limits:
+    memory: "256Mi"
+    cpu: "1000m"
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

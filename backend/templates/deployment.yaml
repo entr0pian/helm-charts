@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    {{- include "taskapp.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "taskapp.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "taskapp.labels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}
+        image: {{ include "taskapp-backend.image" . | quote }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        resources: {{- include "taskapp-backend.resources" . | nindent 12 }}
+        env:
+        - name: PORT
+          valueFrom:
+            configMapKeyRef:
+              name: {{ .Release.Name }}-config
+              key: PORT
+        - name: DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: {{ .Release.Name }}-config
+              key: POSTGRES_DB
+        - name: DB_USER
+          valueFrom:
+            configMapKeyRef:
+              name: {{ .Release.Name }}-config
+              key: POSTGRES_USER
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.db.secretName }}
+              key: POSTGRES_PASSWORD
+        - name: DB_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: {{ .Release.Name }}-config
+              key: DB_PORT
+        - name: DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: {{ .Release.Name }}-config
+              key: DB_HOST
+        {{- if .Values.awsCredentials.enabled }}
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.awsCredentials.secretName }}
+              key: AWS_ACCESS_KEY_ID
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.awsCredentials.secretName }}
+              key: AWS_SECRET_ACCESS_KEY
+        {{- end }}
+        {{- if .Values.sqs.queueUrl }}
+        - name: SQS_QUEUE_URL
+          value: {{ .Values.sqs.queueUrl | quote }}
+        - name: AWS_REGION
+          value: {{ .Values.sqs.region | quote }}
+        - name: SQS_MAX_MESSAGES
+          value: {{ .Values.sqs.maxMessages | quote }}
+        - name: SQS_WORK_SLEEP_SECONDS
+          value: {{ .Values.sqs.workSleepSeconds | quote }}
+        {{- end }}
+        lifecycle:
+          preStop:
+            exec:
+              command: ["sleep", "{{ .Values.preStopSleepSeconds }}"]
+        ports:
+        - containerPort: {{ .Values.applicationPort }}
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: {{ .Values.applicationPort }}
+          initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds  }}
+          periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+          failureThreshold:  {{ .Values.readinessProbe.failureThreshold }}

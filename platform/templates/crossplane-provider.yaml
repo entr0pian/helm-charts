@@ -1,0 +1,10 @@
+{{- if .Values.crossplane.secretPath }}
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: provider-aws-sqs
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  package: {{ .Values.crossplane.provider.package }}
+{{- end }}

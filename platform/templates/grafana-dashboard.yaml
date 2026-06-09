@@ -1,0 +1,265 @@
+{{- if .Values.grafanaDashboard.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: taskapp-grafana-dashboard
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+data:
+  taskapp-resources.json: |
+    {
+      "uid": "taskapp-resources",
+      "title": "TaskApp — Resource Utilization",
+      "tags": ["taskapp", "kubernetes"],
+      "timezone": "browser",
+      "refresh": "30s",
+      "schemaVersion": 39,
+      "time": { "from": "now-1h", "to": "now" },
+      "panels": [
+        {
+          "type": "row",
+          "id": 1,
+          "title": "CPU",
+          "collapsed": false,
+          "gridPos": { "x": 0, "y": 0, "w": 24, "h": 1 }
+        },
+        {
+          "type": "timeseries",
+          "id": 2,
+          "title": "CPU Usage (cores)",
+          "gridPos": { "x": 0, "y": 1, "w": 16, "h": 8 },
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "custom": { "lineWidth": 2, "fillOpacity": 10 }
+            }
+          },
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": ["lastNotNull", "max"]
+            }
+          },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus" },
+              "expr": "rate(container_cpu_usage_seconds_total{namespace=\"default\", pod=~\"taskapp-.*\", pod!=\"\"}[5m])",
+              "legendFormat": "{{`{{pod}}`}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": 3,
+          "title": "CPU % of Limit",
+          "gridPos": { "x": 16, "y": 1, "w": 8, "h": 8 },
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "min": 0,
+              "max": 100,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "yellow", "value": 60 },
+                  { "color": "red", "value": 80 }
+                ]
+              }
+            }
+          },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"] },
+            "showThresholdLabels": false,
+            "showThresholdMarkers": true
+          },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus" },
+              "expr": "(\n  sum by(namespace, pod) (\n    rate(container_cpu_usage_seconds_total{namespace=\"default\", pod=~\"taskapp-.*\", pod!=\"\"}[5m])\n  )\n  /\n  sum by(namespace, pod) (\n    kube_pod_container_resource_limits{namespace=\"default\", resource=\"cpu\", pod=~\"taskapp-.*\"}\n  )\n) * 100",
+              "legendFormat": "{{`{{pod}}`}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "type": "row",
+          "id": 4,
+          "title": "Memory",
+          "collapsed": false,
+          "gridPos": { "x": 0, "y": 9, "w": 24, "h": 1 }
+        },
+        {
+          "type": "timeseries",
+          "id": 5,
+          "title": "Memory Usage",
+          "gridPos": { "x": 0, "y": 10, "w": 16, "h": 8 },
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "bytes",
+              "custom": { "lineWidth": 2, "fillOpacity": 10 }
+            }
+          },
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": ["lastNotNull", "max"]
+            }
+          },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus" },
+              "expr": "container_memory_working_set_bytes{namespace=\"default\", pod=~\"taskapp-.*\", pod!=\"\"}",
+              "legendFormat": "{{`{{pod}}`}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": 6,
+          "title": "Memory % of Limit",
+          "gridPos": { "x": 16, "y": 10, "w": 8, "h": 8 },
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "min": 0,
+              "max": 100,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "yellow", "value": 60 },
+                  { "color": "red", "value": 80 }
+                ]
+              }
+            }
+          },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"] },
+            "showThresholdLabels": false,
+            "showThresholdMarkers": true
+          },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus" },
+              "expr": "(\n  sum by(namespace, pod) (\n    container_memory_working_set_bytes{namespace=\"default\", pod=~\"taskapp-.*\", pod!=\"\"}\n  )\n  /\n  sum by(namespace, pod) (\n    kube_pod_container_resource_limits{namespace=\"default\", resource=\"memory\", pod=~\"taskapp-.*\"}\n  )\n) * 100",
+              "legendFormat": "{{`{{pod}}`}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "type": "row",
+          "id": 7,
+          "title": "Traffic (Frontend)",
+          "collapsed": false,
+          "gridPos": { "x": 0, "y": 18, "w": 24, "h": 1 }
+        },
+        {
+          "type": "timeseries",
+          "id": 8,
+          "title": "Requests per Second (per pod)",
+          "gridPos": { "x": 0, "y": 19, "w": 16, "h": 8 },
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "reqps",
+              "custom": { "lineWidth": 2, "fillOpacity": 10 }
+            }
+          },
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": ["lastNotNull", "max"]
+            }
+          },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus" },
+              "expr": "rate(nginx_http_requests_total{namespace=\"default\", pod=~\"taskapp-frontend-.*\"}[1m])",
+              "legendFormat": "{{`{{pod}}`}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "type": "stat",
+          "id": 9,
+          "title": "Total Req/s",
+          "gridPos": { "x": 16, "y": 19, "w": 8, "h": 4 },
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "reqps",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "yellow", "value": 25 },
+                  { "color": "red", "value": 45 }
+                ]
+              }
+            }
+          },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"] },
+            "colorMode": "background",
+            "graphMode": "area",
+            "orientation": "auto"
+          },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus" },
+              "expr": "sum(rate(nginx_http_requests_total{namespace=\"default\", pod=~\"taskapp-frontend-.*\"}[1m]))",
+              "legendFormat": "total",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "type": "stat",
+          "id": 10,
+          "title": "Frontend Replicas",
+          "gridPos": { "x": 16, "y": 23, "w": 8, "h": 4 },
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "yellow", "value": 6 },
+                  { "color": "red", "value": 9 }
+                ]
+              }
+            }
+          },
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"] },
+            "colorMode": "background",
+            "graphMode": "area",
+            "orientation": "auto"
+          },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus" },
+              "expr": "kube_deployment_status_replicas{namespace=\"default\", deployment=\"taskapp-frontend\"}",
+              "legendFormat": "replicas",
+              "refId": "A"
+            }
+          ]
+        }
+      ]
+    }
+{{- end }}

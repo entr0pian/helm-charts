@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-seed-config
+  labels:
+    app: {{ .Chart.Name }}
+data:
+  seed.sql: |
+    CREATE TABLE IF NOT EXISTS tasks (
+      id SERIAL PRIMARY KEY,
+      title VARCHAR(255),
+      description TEXT,
+      status VARCHAR(50),
+      created_at TIMESTAMP DEFAULT NOW()
+    );
+
+    DELETE FROM tasks;
+
+    INSERT INTO tasks (title, description, status)
+    VALUES
+      ('Learn Kubernetes', 'Play with minikube', 'pending'),
+      ('Build Go API', 'TaskApp backend', 'pending'),
+      ('Seed database', 'Using a Kubernetes Job', 'done'),
+      ('Secret handling', 'Using sealed secrets', 'done'),
+      ('Install Argocd', 'GitOps deployment', 'done'),
+      ('Install Helm', 'Package manager for Kubernetes', 'done'),
+      ('Deploy frontend', 'Using Nginx', 'done'),
+      ('Deploy ESO for AWS secrets', 'Set up ESO for AWS secrets', 'done'),
+      ('Setup PG cluster', 'Using Kubernetes Operator', 'doing');
