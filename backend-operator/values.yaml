@@ -13,7 +13,7 @@ controllerManager:
     defaultQueueRegion: eu-west-1
     image:
       repository: boicotaz/taskapp-backend-operator
-      tag: "13adb0db2e5adeeb002326bcd0376b68ced52ca1"
+      tag: "e44785c472aa982612e2491809067aee8bd4a0d5"
     resources:
       limits:
         cpu: 500m
