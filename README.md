@@ -1,4 +1,4 @@
-# helmcharts
+# helm-charts
 
 Helm charts for the taskapp Kubernetes stack. Each chart is deployed independently via ArgoCD. GitOps configuration lives in the companion repo [`argocd`](https://github.com/entr0pian/argocd).
 
