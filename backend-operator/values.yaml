@@ -11,6 +11,8 @@ controllerManager:
         - ALL
       readOnlyRootFilesystem: true
     defaultQueueRegion: eu-west-1
+    clusterSecretStore: aws-secrets-manager
+    credentialsSecretPath: taskapp/prod/backend-credentials
     image:
       repository: boicotaz/taskapp-backend-operator
       tag: "e44785c472aa982612e2491809067aee8bd4a0d5"

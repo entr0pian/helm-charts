@@ -30,6 +30,10 @@ spec:
           value: {{ quote .Values.kubernetesClusterDomain }}
         - name: DEFAULT_QUEUE_REGION
           value: {{ quote .Values.controllerManager.manager.defaultQueueRegion }}
+        - name: CLUSTER_SECRET_STORE
+          value: {{ quote .Values.controllerManager.manager.clusterSecretStore }}
+        - name: CREDENTIALS_SECRET_PATH
+          value: {{ quote .Values.controllerManager.manager.credentialsSecretPath }}
         image: {{ .Values.controllerManager.manager.image.repository }}:{{ .Values.controllerManager.manager.image.tag
           | default .Chart.AppVersion }}
         livenessProbe:
