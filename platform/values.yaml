@@ -28,8 +28,13 @@ crossplane:
   # Leave empty to skip creating the ExternalSecret, Provider, and ProviderConfig.
   secretPath: ""
   region: eu-west-1
-  provider:
-    package: xpkg.upbound.io/upbound/provider-aws-sqs:v1.14.0
+  providers:
+    - name: provider-aws-sqs
+      package: xpkg.upbound.io/upbound/provider-aws-sqs:v1.14.0
+    - name: provider-aws-ec2
+      package: xpkg.upbound.io/upbound/provider-aws-ec2:v1.14.0
+    - name: provider-aws-rds
+      package: xpkg.upbound.io/upbound/provider-aws-rds:v1.14.0
 
 prometheusRules:
   enabled: false
