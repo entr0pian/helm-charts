@@ -35,8 +35,6 @@ crossplane:
       package: xpkg.upbound.io/upbound/provider-aws-ec2:v2.6.0
     - name: provider-aws-rds
       package: xpkg.upbound.io/upbound/provider-aws-rds:v2.6.0
-    - name: provider-random
-      package: xpkg.upbound.io/crossplane-contrib/provider-random:v0.14.0
 
 prometheusRules:
   enabled: false
