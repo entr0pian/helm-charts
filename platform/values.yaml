@@ -32,9 +32,9 @@ crossplane:
     - name: provider-aws-sqs
       package: xpkg.upbound.io/upbound/provider-aws-sqs:v1.14.0
     - name: provider-aws-ec2
-      package: xpkg.upbound.io/upbound/provider-aws-ec2:v2.6.0
+      package: xpkg.upbound.io/upbound/provider-aws-ec2:v2.6.1
     - name: provider-aws-rds
-      package: xpkg.upbound.io/upbound/provider-aws-rds:v2.6.0
+      package: xpkg.upbound.io/upbound/provider-aws-rds:v2.6.1
 
 prometheusRules:
   enabled: false

@@ -1,0 +1,52 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: CompositeResourceDefinition
+metadata:
+  name: xrdsinstances.database.taskapp.io
+spec:
+  group: database.taskapp.io
+  names:
+    kind: XRDSInstance
+    plural: xrdsinstances
+  claimNames:
+    kind: RDSInstance
+    plural: rdsinstances
+  versions:
+    - name: v1alpha1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              required:
+                - parameters
+              properties:
+                parameters:
+                  type: object
+                  required:
+                    - dbName
+                  properties:
+                    region:
+                      type: string
+                      default: eu-west-1
+                    vpcId:
+                      type: string
+                      default: vpc-0274e6e3e08a56006
+                    subnetIds:
+                      type: array
+                      items:
+                        type: string
+                      default:
+                        - subnet-0782edadda7e60474
+                        - subnet-07a2c3ff2ee7509d5
+                        - subnet-0a55153a720ec379a
+                    instanceClass:
+                      type: string
+                      default: db.t3.micro
+                    storageGB:
+                      type: integer
+                      default: 20
+                    dbName:
+                      type: string

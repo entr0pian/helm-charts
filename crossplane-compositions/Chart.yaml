@@ -1,0 +1,5 @@
+apiVersion: v2
+name: crossplane-compositions
+description: Crossplane XRDs and Compositions for taskapp infrastructure
+type: application
+version: 0.1.0
