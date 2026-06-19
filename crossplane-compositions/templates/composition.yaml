@@ -118,6 +118,7 @@ spec:
                 transforms:
                   - type: string
                     string:
+                      type: Format
                       fmt: "%s-instance-conn"
               - type: FromCompositeFieldPath
                 fromFieldPath: metadata.name
@@ -125,6 +126,7 @@ spec:
                 transforms:
                   - type: string
                     string:
+                      type: Format
                       fmt: "%s-rds-password"
               - type: FromCompositeFieldPath
                 fromFieldPath: spec.parameters.instanceClass
@@ -141,6 +143,7 @@ spec:
                 transforms:
                   - type: string
                     string:
+                      type: Format
                       fmt: "%s-database-connection-details"
             connectionDetails:
               - type: FromFieldPath
