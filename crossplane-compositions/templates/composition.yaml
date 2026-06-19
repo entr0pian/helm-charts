@@ -93,6 +93,9 @@ spec:
               matchControllerRef: true
             vpcSecurityGroupIdSelector:
               matchControllerRef: true
+          writeConnectionSecretToRef:
+            name: placeholder
+            namespace: crossplane-system
           providerConfigRef:
             name: default
       patches:
@@ -101,6 +104,13 @@ spec:
         - type: FromCompositeFieldPath
           fromFieldPath: metadata.name
           toFieldPath: spec.forProvider.identifier
+        - type: FromCompositeFieldPath
+          fromFieldPath: metadata.name
+          toFieldPath: spec.writeConnectionSecretToRef.name
+          transforms:
+            - type: string
+              string:
+                fmt: "%s-instance-conn"
         - type: FromCompositeFieldPath
           fromFieldPath: metadata.name
           toFieldPath: spec.forProvider.passwordSecretRef.name
@@ -117,15 +127,6 @@ spec:
         - type: FromCompositeFieldPath
           fromFieldPath: spec.parameters.dbName
           toFieldPath: spec.forProvider.dbName
-        - type: ToCompositeFieldPath
-          fromFieldPath: status.atProvider.address
-          toFieldPath: status.atProvider.endpoint
-        - type: ToCompositeFieldPath
-          fromFieldPath: status.atProvider.port
-          toFieldPath: status.atProvider.port
-        - type: ToCompositeFieldPath
-          fromFieldPath: status.atProvider.username
-          toFieldPath: status.atProvider.username
       readinessChecks:
         - type: MatchString
           fieldPath: status.atProvider.status
@@ -139,6 +140,27 @@ spec:
           providerConfigRef:
             name: default
           references:
+            - patchesFrom:
+                apiVersion: v1
+                kind: Secret
+                namespace: crossplane-system
+                name: placeholder
+                fieldPath: data.address
+              toFieldPath: data.endpoint
+            - patchesFrom:
+                apiVersion: v1
+                kind: Secret
+                namespace: crossplane-system
+                name: placeholder
+                fieldPath: data.port
+              toFieldPath: data.port
+            - patchesFrom:
+                apiVersion: v1
+                kind: Secret
+                namespace: crossplane-system
+                name: placeholder
+                fieldPath: data.username
+              toFieldPath: data.username
             - patchesFrom:
                 apiVersion: v1
                 kind: Secret
@@ -174,20 +196,28 @@ spec:
           transforms:
             - type: string
               string:
-                fmt: "%s-rds-password"
+                fmt: "%s-instance-conn"
         - type: FromCompositeFieldPath
-          fromFieldPath: status.atProvider.endpoint
-          toFieldPath: spec.forProvider.manifest.stringData.endpoint
-        - type: FromCompositeFieldPath
-          fromFieldPath: status.atProvider.port
-          toFieldPath: spec.forProvider.manifest.stringData.port
+          fromFieldPath: metadata.name
+          toFieldPath: spec.references[1].patchesFrom.name
           transforms:
-            - type: convert
-              convert:
-                toType: string
+            - type: string
+              string:
+                fmt: "%s-instance-conn"
         - type: FromCompositeFieldPath
-          fromFieldPath: status.atProvider.username
-          toFieldPath: spec.forProvider.manifest.stringData.username
+          fromFieldPath: metadata.name
+          toFieldPath: spec.references[2].patchesFrom.name
+          transforms:
+            - type: string
+              string:
+                fmt: "%s-instance-conn"
+        - type: FromCompositeFieldPath
+          fromFieldPath: metadata.name
+          toFieldPath: spec.references[3].patchesFrom.name
+          transforms:
+            - type: string
+              string:
+                fmt: "%s-rds-password"
         - type: FromCompositeFieldPath
           fromFieldPath: spec.parameters.dbName
           toFieldPath: spec.forProvider.manifest.stringData.dbname
