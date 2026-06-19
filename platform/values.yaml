@@ -35,6 +35,8 @@ crossplane:
       package: xpkg.upbound.io/upbound/provider-aws-ec2:v2.6.1
     - name: provider-aws-rds
       package: xpkg.upbound.io/upbound/provider-aws-rds:v2.6.1
+    - name: provider-kubernetes
+      package: xpkg.upbound.io/crossplane-contrib/provider-kubernetes:v0.17.0
 
 prometheusRules:
   enabled: false

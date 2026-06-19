@@ -23,16 +23,6 @@ spec:
               required:
                 - parameters
               properties:
-                writeConnectionSecretToRef:
-                  type: object
-                  default:
-                    namespace: default
-                  properties:
-                    name:
-                      type: string
-                    namespace:
-                      type: string
-                      default: default
                 parameters:
                   type: object
                   required:

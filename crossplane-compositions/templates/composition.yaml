@@ -6,162 +6,189 @@ spec:
   compositeTypeRef:
     apiVersion: database.taskapp.io/v1alpha1
     kind: XRDSInstance
-  mode: Pipeline
-  pipeline:
-    - step: patch-and-transform
-      functionRef:
-        name: function-patch-and-transform
-      input:
-        apiVersion: pt.fn.crossplane.io/v1beta1
-        kind: Resources
-        patchSets:
-          - name: common
-            patches:
-              - type: FromCompositeFieldPath
-                fromFieldPath: metadata.name
-                toFieldPath: metadata.name
-              - type: FromCompositeFieldPath
-                fromFieldPath: spec.parameters.region
-                toFieldPath: spec.forProvider.region
-        resources:
-          - name: security-group
-            base:
-              apiVersion: ec2.aws.upbound.io/v1beta1
-              kind: SecurityGroup
-              spec:
-                forProvider:
-                  description: Taskapp RDS security group
-                providerConfigRef:
-                  name: default
-            patches:
-              - type: PatchSet
-                patchSetName: common
-              - type: FromCompositeFieldPath
-                fromFieldPath: metadata.name
-                toFieldPath: spec.forProvider.name
-              - type: FromCompositeFieldPath
-                fromFieldPath: spec.parameters.vpcId
-                toFieldPath: spec.forProvider.vpcId
+  patchSets:
+    - name: common
+      patches:
+        - type: FromCompositeFieldPath
+          fromFieldPath: metadata.name
+          toFieldPath: metadata.name
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.region
+          toFieldPath: spec.forProvider.region
+  resources:
+    - name: security-group
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: SecurityGroup
+        spec:
+          forProvider:
+            description: Taskapp RDS security group
+          providerConfigRef:
+            name: default
+      patches:
+        - type: PatchSet
+          patchSetName: common
+        - type: FromCompositeFieldPath
+          fromFieldPath: metadata.name
+          toFieldPath: spec.forProvider.name
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.vpcId
+          toFieldPath: spec.forProvider.vpcId
 
-          - name: security-group-rule
-            base:
-              apiVersion: ec2.aws.upbound.io/v1beta1
-              kind: SecurityGroupRule
-              spec:
-                forProvider:
-                  type: ingress
-                  fromPort: 5432
-                  toPort: 5432
-                  protocol: tcp
-                  cidrBlocks:
-                    - "0.0.0.0/0"
-                  securityGroupIdSelector:
-                    matchControllerRef: true
-                providerConfigRef:
-                  name: default
-            patches:
-              - type: PatchSet
-                patchSetName: common
+    - name: security-group-rule
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: SecurityGroupRule
+        spec:
+          forProvider:
+            type: ingress
+            fromPort: 5432
+            toPort: 5432
+            protocol: tcp
+            cidrBlocks:
+              - "0.0.0.0/0"
+            securityGroupIdSelector:
+              matchControllerRef: true
+          providerConfigRef:
+            name: default
+      patches:
+        - type: PatchSet
+          patchSetName: common
 
-          - name: subnet-group
-            base:
-              apiVersion: rds.aws.upbound.io/v1beta1
-              kind: SubnetGroup
-              spec:
-                forProvider:
-                  description: Taskapp RDS subnet group
-                providerConfigRef:
-                  name: default
-            patches:
-              - type: PatchSet
-                patchSetName: common
-              - type: FromCompositeFieldPath
-                fromFieldPath: spec.parameters.subnetIds
-                toFieldPath: spec.forProvider.subnetIds
+    - name: subnet-group
+      base:
+        apiVersion: rds.aws.upbound.io/v1beta1
+        kind: SubnetGroup
+        spec:
+          forProvider:
+            description: Taskapp RDS subnet group
+          providerConfigRef:
+            name: default
+      patches:
+        - type: PatchSet
+          patchSetName: common
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.subnetIds
+          toFieldPath: spec.forProvider.subnetIds
 
-          - name: instance
-            base:
-              apiVersion: rds.aws.upbound.io/v1beta1
-              kind: Instance
-              spec:
-                forProvider:
-                  engine: postgres
-                  engineVersion: "16"
-                  storageType: gp2
-                  username: taskuser
-                  multiAz: false
-                  publiclyAccessible: true
-                  skipFinalSnapshot: true
-                  autoGeneratePassword: true
-                  passwordSecretRef:
-                    namespace: default
-                    name: placeholder
-                    key: password
-                  dbSubnetGroupNameSelector:
-                    matchControllerRef: true
-                  vpcSecurityGroupIdSelector:
-                    matchControllerRef: true
-                writeConnectionSecretToRef:
-                  name: placeholder
-                  namespace: crossplane-system
-                providerConfigRef:
-                  name: default
-            patches:
-              - type: PatchSet
-                patchSetName: common
-              - type: FromCompositeFieldPath
-                fromFieldPath: metadata.name
-                toFieldPath: spec.forProvider.identifier
-              - type: FromCompositeFieldPath
-                fromFieldPath: metadata.name
-                toFieldPath: spec.writeConnectionSecretToRef.name
-                transforms:
-                  - type: string
-                    string:
-                      type: Format
-                      fmt: "%s-instance-conn"
-              - type: FromCompositeFieldPath
-                fromFieldPath: metadata.name
-                toFieldPath: spec.forProvider.passwordSecretRef.name
-                transforms:
-                  - type: string
-                    string:
-                      type: Format
-                      fmt: "%s-rds-password"
-              - type: FromCompositeFieldPath
-                fromFieldPath: spec.parameters.instanceClass
-                toFieldPath: spec.forProvider.instanceClass
-              - type: FromCompositeFieldPath
-                fromFieldPath: spec.parameters.storageGB
-                toFieldPath: spec.forProvider.allocatedStorage
-              - type: FromCompositeFieldPath
-                fromFieldPath: spec.parameters.dbName
-                toFieldPath: spec.forProvider.dbName
-              - type: ToCompositeFieldPath
-                fromFieldPath: metadata.name
-                toFieldPath: spec.writeConnectionSecretToRef.name
-                transforms:
-                  - type: string
-                    string:
-                      type: Format
-                      fmt: "%s-database-connection-details"
-            connectionDetails:
-              - type: FromFieldPath
-                name: endpoint
-                fromFieldPath: status.atProvider.address
-              - type: FromFieldPath
-                name: port
-                fromFieldPath: status.atProvider.port
-              - type: FromFieldPath
-                name: username
-                fromFieldPath: status.atProvider.username
-              - type: FromConnectionSecretKey
-                name: password
-                fromConnectionSecretKey: password
-              - type: FromFieldPath
-                name: dbname
-                fromFieldPath: spec.forProvider.dbName
-            readinessChecks:
-              - type: MatchString
-                fieldPath: status.atProvider.status
-                matchString: available
+    - name: instance
+      base:
+        apiVersion: rds.aws.upbound.io/v1beta1
+        kind: Instance
+        spec:
+          forProvider:
+            engine: postgres
+            engineVersion: "16"
+            storageType: gp2
+            username: taskuser
+            multiAz: false
+            publiclyAccessible: true
+            skipFinalSnapshot: true
+            autoGeneratePassword: true
+            passwordSecretRef:
+              namespace: default
+              name: placeholder
+              key: password
+            dbSubnetGroupNameSelector:
+              matchControllerRef: true
+            vpcSecurityGroupIdSelector:
+              matchControllerRef: true
+          providerConfigRef:
+            name: default
+      patches:
+        - type: PatchSet
+          patchSetName: common
+        - type: FromCompositeFieldPath
+          fromFieldPath: metadata.name
+          toFieldPath: spec.forProvider.identifier
+        - type: FromCompositeFieldPath
+          fromFieldPath: metadata.name
+          toFieldPath: spec.forProvider.passwordSecretRef.name
+          transforms:
+            - type: string
+              string:
+                fmt: "%s-rds-password"
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.instanceClass
+          toFieldPath: spec.forProvider.instanceClass
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.storageGB
+          toFieldPath: spec.forProvider.allocatedStorage
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.dbName
+          toFieldPath: spec.forProvider.dbName
+        - type: ToCompositeFieldPath
+          fromFieldPath: status.atProvider.address
+          toFieldPath: status.atProvider.endpoint
+        - type: ToCompositeFieldPath
+          fromFieldPath: status.atProvider.port
+          toFieldPath: status.atProvider.port
+        - type: ToCompositeFieldPath
+          fromFieldPath: status.atProvider.username
+          toFieldPath: status.atProvider.username
+      readinessChecks:
+        - type: MatchString
+          fieldPath: status.atProvider.status
+          matchString: available
+
+    - name: connection-secret
+      base:
+        apiVersion: kubernetes.crossplane.io/v1alpha2
+        kind: Object
+        spec:
+          providerConfigRef:
+            name: default
+          references:
+            - patchesFrom:
+                apiVersion: v1
+                kind: Secret
+                namespace: default
+                name: placeholder
+                fieldPath: data.password
+              toFieldPath: spec.forProvider.manifest.data.password
+          forProvider:
+            manifest:
+              apiVersion: v1
+              kind: Secret
+              metadata:
+                namespace: default
+                name: placeholder
+              data: {}
+      patches:
+        - type: FromCompositeFieldPath
+          fromFieldPath: metadata.name
+          toFieldPath: metadata.name
+          transforms:
+            - type: string
+              string:
+                fmt: "%s-connection-secret"
+        - type: FromCompositeFieldPath
+          fromFieldPath: metadata.name
+          toFieldPath: spec.forProvider.manifest.metadata.name
+          transforms:
+            - type: string
+              string:
+                fmt: "%s-database-connection-details"
+        - type: FromCompositeFieldPath
+          fromFieldPath: metadata.name
+          toFieldPath: spec.references[0].patchesFrom.name
+          transforms:
+            - type: string
+              string:
+                fmt: "%s-rds-password"
+        - type: FromCompositeFieldPath
+          fromFieldPath: status.atProvider.endpoint
+          toFieldPath: spec.forProvider.manifest.stringData.endpoint
+        - type: FromCompositeFieldPath
+          fromFieldPath: status.atProvider.port
+          toFieldPath: spec.forProvider.manifest.stringData.port
+          transforms:
+            - type: convert
+              convert:
+                toType: string
+        - type: FromCompositeFieldPath
+          fromFieldPath: status.atProvider.username
+          toFieldPath: spec.forProvider.manifest.stringData.username
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.dbName
+          toFieldPath: spec.forProvider.manifest.stringData.dbname
