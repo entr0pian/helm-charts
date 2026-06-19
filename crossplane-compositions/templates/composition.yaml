@@ -145,7 +145,7 @@ spec:
                 namespace: default
                 name: placeholder
                 fieldPath: data.password
-              toFieldPath: spec.forProvider.manifest.data.password
+              toFieldPath: data.password
           forProvider:
             manifest:
               apiVersion: v1
@@ -153,7 +153,6 @@ spec:
               metadata:
                 namespace: default
                 name: placeholder
-              data: {}
       patches:
         - type: FromCompositeFieldPath
           fromFieldPath: metadata.name
