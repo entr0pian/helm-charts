@@ -103,6 +103,24 @@ rules:
   - patch
   - update
   - watch
+- apiGroups:
+  - db.atlasgo.io
+  resources:
+  - atlasschemas
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - db.atlasgo.io
+  resources:
+  - atlasschemas/status
+  verbs:
+  - get
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
