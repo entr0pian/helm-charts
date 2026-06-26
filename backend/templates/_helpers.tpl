@@ -1,23 +1,8 @@
 {{/*
-Render the container image string.
-Usage: {{ include "taskapp-backend.image" . }}
-*/}}
-{{- define "taskapp-backend.image" -}}
-{{- printf "%s:%s" .Values.image.repository .Values.image.tag }}
-{{- end }}
-
-{{/*
-Render the backend service endpoint (host:port).
+Render the backend service endpoint.
+The operator creates the service as <cr-name>-backend on port 80.
 Usage: {{ include "taskapp-backend.endpoint" . }}
 */}}
 {{- define "taskapp-backend.endpoint" -}}
-{{- printf "http://%s:%v" .Release.Name .Values.service.port }}
-{{- end }}
-
-{{/*
-Render container resource requests/limits.
-Usage: {{ include "taskapp-backend.resources" . }}
-*/}}
-{{- define "taskapp-backend.resources" -}}
-{{- toYaml .Values.resources }}
+{{- printf "http://%s-backend:80" .Release.Name }}
 {{- end }}

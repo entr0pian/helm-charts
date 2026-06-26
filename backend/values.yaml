@@ -1,42 +1,31 @@
-replicaCount: 2
-
 image:
   repository: boicotaz/taskapp-backend
-  pullPolicy: Always
   tag: "27a621a534ab788d32d5651269c1492b72188f57"
 
-applicationPort: 8080
+replicas: 2
 
-# Seconds to sleep in the preStop hook before SIGTERM is sent.
-# This gives kube-proxy time to propagate the endpoint removal so no new
-# requests are routed to the pod while it is shutting down.
-preStopSleepSeconds: 5
+database:
+  enabled: true
+  dbName: taskdb
+  size: small
+  schema:
+    sql: |
+      CREATE TABLE IF NOT EXISTS tasks (
+        id          SERIAL PRIMARY KEY,
+        title       VARCHAR(255),
+        description TEXT,
+        status      VARCHAR(50),
+        created_at  TIMESTAMP DEFAULT NOW()
+      );
 
-readinessProbe:
-  initialDelaySeconds: 5
-  periodSeconds: 10
-  failureThreshold: 3
-
-service:
-  type: ClusterIP
-  port: 80
-
-db:
-  host: taskapp-database
-  port: 5432
-  secretName: taskapp-database-secret
-  name: taskdb
-  user: taskuser
-
-awsCredentials:
-  enabled: false
-  secretName: taskapp-backend-aws-credentials
+queue:
+  enabled: true
+  type: standard
+  deadLetter: false
 
 sqs:
-  queueUrl: ""
   region: eu-west-1
-  maxMessages: 1
-  workSleepSeconds: 10
+  queueUrl: ""
 
 keda:
   enabled: false
@@ -44,17 +33,3 @@ keda:
   maxReplicaCount: 10
   queueLength: "5"
   cooldownPeriod: 300
-
-resources:
-  requests:
-    memory: "64Mi"
-    cpu: "250m"
-  limits:
-    memory: "256Mi"
-    cpu: "1000m"
-
-nodeSelector: {}
-
-tolerations: []
-
-affinity: {}

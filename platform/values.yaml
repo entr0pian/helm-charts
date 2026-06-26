@@ -10,17 +10,6 @@ clusterSecretStore:
 
 externalSecrets:
   clusterSecretStoreName: aws-secrets-manager
-  targetSecretName: taskapp-database-secret
-  # Path to the secret in AWS Secrets Manager.
-  # Expected JSON format: {"password": "<value>"}
-  secretPath: taskapp/dev/database
-
-awsCredentials:
-  secretName: taskapp-backend-aws-credentials
-  # Path to the secret in AWS Secrets Manager.
-  # Expected JSON format: {"aws_access_key_id": "<value>", "aws_secret_access_key": "<value>"}
-  # Leave empty to skip creating the ExternalSecret.
-  secretPath: ""
 
 crossplane:
   # Path to the secret in AWS Secrets Manager.
