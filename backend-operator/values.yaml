@@ -15,7 +15,7 @@ controllerManager:
     credentialsSecretPath: taskapp/prod/backend-credentials
     image:
       repository: boicotaz/taskapp-backend-operator
-      tag: "db9d13656451275776117478550202ac5ebbaa0c"
+      tag: "2a1dc5349f3785699f34bdddb412be224425dcd7"
     resources:
       limits:
         cpu: 500m
