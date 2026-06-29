@@ -1,0 +1,44 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: CompositeResourceDefinition
+metadata:
+  name: xsqsqueues.queue.taskapp.io
+spec:
+  group: queue.taskapp.io
+  names:
+    kind: XSQSQueue
+    plural: xsqsqueues
+  claimNames:
+    kind: SQSQueue
+    plural: sqsqueues
+  versions:
+    - name: v1alpha1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                parameters:
+                  type: object
+                  properties:
+                    region:
+                      type: string
+                      default: eu-west-1
+                    fifo:
+                      type: boolean
+                      default: false
+                    deadLetterArn:
+                      type: string
+                    maxReceiveCount:
+                      type: integer
+                      default: 5
+            status:
+              type: object
+              properties:
+                queueUrl:
+                  type: string
+                queueArn:
+                  type: string

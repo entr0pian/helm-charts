@@ -1,0 +1,57 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: xsqsqueues.queue.taskapp.io
+spec:
+  compositeTypeRef:
+    apiVersion: queue.taskapp.io/v1alpha1
+    kind: XSQSQueue
+  resources:
+    - name: queue
+      base:
+        apiVersion: sqs.aws.upbound.io/v1beta1
+        kind: Queue
+        spec:
+          forProvider:
+            tags:
+              managed-by: taskapp-operator
+          providerConfigRef:
+            name: default
+      patches:
+        - type: FromCompositeFieldPath
+          fromFieldPath: metadata.name
+          toFieldPath: metadata.name
+        - type: FromCompositeFieldPath
+          fromFieldPath: metadata.name
+          toFieldPath: spec.forProvider.name
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.region
+          toFieldPath: spec.forProvider.region
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.fifo
+          toFieldPath: spec.forProvider.fifoQueue
+        # Only applied when deadLetterArn is set in the claim (Optional policy skips if absent)
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.deadLetterArn
+          toFieldPath: spec.forProvider.redrivePolicy
+          policy:
+            fromFieldPath: Optional
+          transforms:
+            - type: string
+              string:
+                type: Format
+                fmt: '[{"deadLetterTargetArn":"%s","maxReceiveCount":5}]'
+        # Promote atProvider fields to XR status so the operator can read them from the claim
+        - type: ToCompositeFieldPath
+          fromFieldPath: status.atProvider.url
+          toFieldPath: status.queueUrl
+          policy:
+            fromFieldPath: Optional
+        - type: ToCompositeFieldPath
+          fromFieldPath: status.atProvider.arn
+          toFieldPath: status.queueArn
+          policy:
+            fromFieldPath: Optional
+      readinessChecks:
+        - type: NonEmpty
+          fieldPath: status.atProvider.url
