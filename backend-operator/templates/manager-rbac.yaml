@@ -56,24 +56,6 @@ rules:
   - patch
   - update
 - apiGroups:
-  - sqs.aws.upbound.io
-  resources:
-  - queues
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - sqs.aws.upbound.io
-  resources:
-  - queues/status
-  verbs:
-  - get
-- apiGroups:
   - database.taskapp.io
   resources:
   - rdsinstances
@@ -92,18 +74,6 @@ rules:
   verbs:
   - get
 - apiGroups:
-  - external-secrets.io
-  resources:
-  - externalsecrets
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
   - db.atlasgo.io
   resources:
   - atlasschemas
@@ -119,6 +89,36 @@ rules:
   - db.atlasgo.io
   resources:
   - atlasschemas/status
+  verbs:
+  - get
+- apiGroups:
+  - external-secrets.io
+  resources:
+  - externalsecrets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - queue.taskapp.io
+  resources:
+  - sqsqueues
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - queue.taskapp.io
+  resources:
+  - sqsqueues/status
   verbs:
   - get
 ---
