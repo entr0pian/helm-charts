@@ -16,6 +16,13 @@ crossplane:
   # Expected JSON format: {"aws_access_key_id": "<value>", "aws_secret_access_key": "<value>"}
   # Leave empty to skip creating the ExternalSecret, Provider, and ProviderConfig.
   secretPath: ""
+
+argocdWriteToken:
+  # Path to the secret in AWS Secrets Manager, holding the GitHub token
+  # application-repository-operator uses to commit into taskapp-argocd.
+  # Expected JSON format: {"token": "<value>"}
+  # Leave empty to skip creating the ExternalSecret.
+  secretPath: ""
   region: eu-west-1
   providers:
     - name: provider-aws-sqs
