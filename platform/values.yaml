@@ -23,6 +23,13 @@ crossplane:
       package: xpkg.upbound.io/upbound/provider-aws-ec2:v2.6.3
     - name: provider-aws-rds
       package: xpkg.upbound.io/upbound/provider-aws-rds:v2.6.3
+    # Pinned explicitly (not just pulled in as a transitive dependency): provider-aws-ec2/rds
+    # require this exact version, but provider-aws-sqs accepts any version, so leaving it
+    # implicit lets the resolver silently pick the registry's newest tag on every fresh
+    # cluster bootstrap and drift out of sync with the ec2/rds pin. Bump this together with
+    # provider-aws-ec2/rds whenever either changes.
+    - name: provider-family-aws
+      package: xpkg.upbound.io/upbound/provider-family-aws:v2.6.3
     - name: provider-kubernetes
       package: xpkg.upbound.io/crossplane-contrib/provider-kubernetes:v0.17.0
 
