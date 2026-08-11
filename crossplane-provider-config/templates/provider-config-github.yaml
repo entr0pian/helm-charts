@@ -1,0 +1,13 @@
+{{- if .Values.github.enabled }}
+apiVersion: github.upbound.io/v1beta1
+kind: ProviderConfig
+metadata:
+  name: default
+spec:
+  credentials:
+    source: Secret
+    secretRef:
+      namespace: {{ .Values.github.credentialsSecret.namespace }}
+      name: {{ .Values.github.credentialsSecret.name }}
+      key: {{ .Values.github.credentialsSecret.key }}
+{{- end }}

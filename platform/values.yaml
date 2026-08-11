@@ -40,6 +40,13 @@ argocdWriteToken:
   # Leave empty to skip creating the ExternalSecret.
   secretPath: ""
 
+crossplaneGithub:
+  # Path to the secret in AWS Secrets Manager, holding the dedicated PAT the
+  # crossplane-compositions GitHubRepository composition uses via provider-upjet-github.
+  # Expected JSON format: {"token": "<value>", "owner": "<github org or user>"}
+  # Leave empty to skip creating the ExternalSecret.
+  secretPath: ""
+
 prometheusRules:
   enabled: false
 

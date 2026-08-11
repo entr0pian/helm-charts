@@ -1,4 +1,16 @@
-credentialsSecret:
-  namespace: crossplane-system
-  name: crossplane-aws-credentials
-  key: creds
+kubernetes:
+  enabled: true
+
+aws:
+  enabled: true
+  credentialsSecret:
+    namespace: crossplane-system
+    name: crossplane-aws-credentials
+    key: creds
+
+github:
+  enabled: false
+  credentialsSecret:
+    namespace: crossplane-system
+    name: crossplane-github-credentials
+    key: credentials
