@@ -12,26 +12,15 @@ externalSecrets:
   clusterSecretStoreName: aws-secrets-manager
 
 crossplane:
-  # Path to the secret in AWS Secrets Manager.
+  # Path to the secret in AWS Secrets Manager, holding the AWS credentials the
+  # crossplane-provider-config chart's AWS ProviderConfig references.
   # Expected JSON format: {"aws_access_key_id": "<value>", "aws_secret_access_key": "<value>"}
-  # Leave empty to skip creating the ExternalSecret, Provider, and ProviderConfig.
+  # Provider packages themselves are no longer installed from here - Crossplane's own
+  # package manager installs them via each Configuration package's crossplane.yaml
+  # dependsOn (see crossplane-compositions). This only delivers credentials for
+  # ProviderConfig to reference.
+  # Leave empty to skip creating the ExternalSecret.
   secretPath: ""
-  providers:
-    - name: provider-aws-sqs
-      package: xpkg.upbound.io/upbound/provider-aws-sqs:v1.14.0
-    - name: provider-aws-ec2
-      package: xpkg.upbound.io/upbound/provider-aws-ec2:v2.6.3
-    - name: provider-aws-rds
-      package: xpkg.upbound.io/upbound/provider-aws-rds:v2.6.3
-    # Pinned explicitly (not just pulled in as a transitive dependency): provider-aws-ec2/rds
-    # require this exact version, but provider-aws-sqs accepts any version, so leaving it
-    # implicit lets the resolver silently pick the registry's newest tag on every fresh
-    # cluster bootstrap and drift out of sync with the ec2/rds pin. Bump this together with
-    # provider-aws-ec2/rds whenever either changes.
-    - name: provider-family-aws
-      package: xpkg.upbound.io/upbound/provider-family-aws:v2.6.3
-    - name: provider-kubernetes
-      package: xpkg.upbound.io/crossplane-contrib/provider-kubernetes:v0.17.0
 
 argocdWriteToken:
   # Path to the secret in AWS Secrets Manager, holding the GitHub token
