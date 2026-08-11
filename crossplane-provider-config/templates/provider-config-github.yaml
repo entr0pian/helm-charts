@@ -1,6 +1,6 @@
 {{- if .Values.github.enabled }}
-apiVersion: github.upbound.io/v1beta1
-kind: ProviderConfig
+apiVersion: github.m.upbound.io/v1beta1
+kind: ClusterProviderConfig
 metadata:
   name: default
 spec:
