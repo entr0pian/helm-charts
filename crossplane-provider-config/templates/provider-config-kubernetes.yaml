@@ -1,6 +1,6 @@
 {{- if .Values.kubernetes.enabled }}
-apiVersion: kubernetes.crossplane.io/v1alpha1
-kind: ProviderConfig
+apiVersion: kubernetes.m.crossplane.io/v1alpha1
+kind: ClusterProviderConfig
 metadata:
   name: default
   annotations:
