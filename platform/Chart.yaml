@@ -1,7 +1,7 @@
 apiVersion: v2
 name: taskapp-platform
 version: 0.1.0
-description: Cluster-wide platform policies for TaskApp (LimitRanges, etc.)
+description: Cluster-wide platform policies for TaskApp (LimitRanges, recording rules, etc.)
 
 type: application
 

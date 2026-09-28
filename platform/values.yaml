@@ -36,8 +36,13 @@ crossplaneGithub:
   # Leave empty to skip creating the ExternalSecret.
   secretPath: ""
 
-prometheusRules:
-  enabled: false
+observability:
+  # platform.infrastructure recording rules (platform:container_* metrics),
+  # keyed by component/environment. Needs kube-state-metrics to expose the
+  # platform.taskapp.io/{component,environment} pod labels via
+  # metricLabelsAllowlist, or every rule records nothing.
+  recordingRules:
+    enabled: false
 
 grafanaDashboard:
   enabled: false
