@@ -45,6 +45,8 @@ observability:
     enabled: false
 
 grafanaDashboard:
+  # Platform — Service Overview (dashboards/platform-service-overview.json).
+  # Built on the observability.recordingRules metrics; enable both together.
   enabled: false
 
 limitRange:
