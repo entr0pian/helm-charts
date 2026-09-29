@@ -14,7 +14,8 @@ spec:
     # component/environment identity, so dashboards and alerts never join
     # against Kubernetes pod labels themselves. Rules in a group evaluate in
     # order, so the later rules read platform:pod_identity:info from the same
-    # evaluation.
+    # evaluation, and the deployment rules read
+    # platform:deployment_identity:info likewise.
     - name: platform.infrastructure
       rules:
         # One series per platform pod, value 1. A pod is a platform workload
@@ -28,6 +29,26 @@ spec:
               label_replace(
                 label_replace(
                   kube_pod_labels{
+                    job="kube-state-metrics",
+                    label_platform_taskapp_io_component!="",
+                    label_platform_taskapp_io_environment!=""
+                  },
+                  "component", "$1", "label_platform_taskapp_io_component", "(.+)"
+                ),
+                "environment", "$1", "label_platform_taskapp_io_environment", "(.+)"
+              )
+            )
+
+        # Deployment counterpart of platform:pod_identity:info, for
+        # kube_deployment_* series keyed by (namespace, deployment) rather
+        # than pod. Requires the deployments= entry in kube-state-metrics'
+        # metricLabelsAllowlist.
+        - record: platform:deployment_identity:info
+          expr: |
+            max by (namespace, deployment, component, environment) (
+              label_replace(
+                label_replace(
+                  kube_deployment_labels{
                     job="kube-state-metrics",
                     label_platform_taskapp_io_component!="",
                     label_platform_taskapp_io_environment!=""
@@ -92,4 +113,74 @@ spec:
             )
             * on (namespace, pod) group_left (component, environment)
             platform:pod_identity:info
+        # Counter: consumers take increase()/rate() over it. A rollout
+        # replaces pods rather than restarting containers, so it doesn't
+        # move this.
+        - record: platform:container_restarts_total
+          expr: |
+            sum by (namespace, pod, container) (
+              kube_pod_container_status_restarts_total{
+                job="kube-state-metrics"
+              }
+            )
+            * on (namespace, pod) group_left (component, environment)
+            platform:pod_identity:info
+
+        # 1 when the pod's Ready condition is true, 0 otherwise.
+        - record: platform:pod_ready
+          expr: |
+            sum by (namespace, pod) (
+              kube_pod_status_ready{
+                job="kube-state-metrics",
+                condition="true"
+              }
+            )
+            * on (namespace, pod) group_left (component, environment)
+            platform:pod_identity:info
+
+        # One series per pod, labelled with its current phase (value 1).
+        - record: platform:pod_phase
+          expr: |
+            sum by (namespace, pod, phase) (
+              kube_pod_status_phase{
+                job="kube-state-metrics"
+              } == 1
+            )
+            * on (namespace, pod) group_left (component, environment)
+            platform:pod_identity:info
+
+        # 1 when a container's *most recent* termination was an OOM kill.
+        # Not a counter of OOM kills: a later non-OOM termination replaces
+        # it, and a new pod starts with no series. Count OOMs with
+        # platform:container_restarts_total alongside this.
+        - record: platform:container_last_terminated_oomkilled
+          expr: |
+            sum by (namespace, pod, container) (
+              kube_pod_container_status_last_terminated_reason{
+                job="kube-state-metrics",
+                reason="OOMKilled"
+              }
+            )
+            * on (namespace, pod) group_left (component, environment)
+            platform:pod_identity:info
+
+        - record: platform:deployment_replicas_desired
+          expr: |
+            sum by (namespace, deployment) (
+              kube_deployment_spec_replicas{
+                job="kube-state-metrics"
+              }
+            )
+            * on (namespace, deployment) group_left (component, environment)
+            platform:deployment_identity:info
+
+        - record: platform:deployment_replicas_available
+          expr: |
+            sum by (namespace, deployment) (
+              kube_deployment_status_replicas_available{
+                job="kube-state-metrics"
+              }
+            )
+            * on (namespace, deployment) group_left (component, environment)
+            platform:deployment_identity:info
 {{- end }}
