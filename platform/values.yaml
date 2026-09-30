@@ -4,6 +4,11 @@ clusterSecretStore:
   name: aws-secrets-manager
   aws:
     region: eu-west-1
+    # podIdentity: no auth block - ESO uses its controller pod's own AWS
+    #   credentials (EKS Pod Identity, role bound in bootstrap-cluster/
+    #   terraform/modules/eks-cluster/external-secrets.tf).
+    # secretRef: static access key from credentialsSecret below (kind clusters).
+    auth: secretRef
     credentialsSecret:
       name: aws-credentials
       namespace: external-secrets
