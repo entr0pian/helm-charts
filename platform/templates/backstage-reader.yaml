@@ -1,0 +1,40 @@
+{{- if .Values.backstageReader.enabled }}
+# Read-only access for management's Backstage, which reaches this cluster as
+# the IAM role taskapp-backstage, mapped by this cluster's EKS access entry to
+# the group below (bootstrap-cluster/terraform/<env>-eks). Exactly what the
+# Deployments tab's Logs and Details read, and nothing more: no Secrets, no
+# ConfigMaps, no exec, no writes.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: backstage-reader
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "services", "events"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "replicasets"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["discovery.k8s.io"]
+    resources: ["endpointslices"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["external-secrets.io"]
+    resources: ["externalsecrets"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: backstage-reader
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: backstage-reader
+subjects:
+  - apiGroup: rbac.authorization.k8s.io
+    kind: Group
+    name: {{ .Values.backstageReader.group }}
+{{- end }}

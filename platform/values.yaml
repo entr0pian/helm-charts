@@ -47,6 +47,13 @@ crossplaneGithub:
 # for the taskapp-argocd role. See templates/external-secret-registered-clusters.yaml.
 registeredClusters: []
 
+# Workload clusters only: read-only RBAC for management's Backstage, bound to
+# the Kubernetes group its EKS access entry maps the taskapp-backstage role to
+# (bootstrap-cluster/terraform/<env>-eks). See templates/backstage-reader.yaml.
+backstageReader:
+  enabled: false
+  group: backstage-readers
+
 observability:
   # platform.infrastructure recording rules (platform:container_* metrics),
   # keyed by component/environment. Needs kube-state-metrics to expose the
