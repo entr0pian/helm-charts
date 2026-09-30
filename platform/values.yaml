@@ -41,6 +41,12 @@ crossplaneGithub:
   # Leave empty to skip creating the ExternalSecret.
   secretPath: ""
 
+# Workload clusters this (management) cluster's ArgoCD delivers to, by
+# environment name. Each needs taskapp/clusters/<env> published by its
+# bootstrap-cluster/terraform/<env>-eks workspace and an access entry there
+# for the taskapp-argocd role. See templates/external-secret-registered-clusters.yaml.
+registeredClusters: []
+
 observability:
   # platform.infrastructure recording rules (platform:container_* metrics),
   # keyed by component/environment. Needs kube-state-metrics to expose the
