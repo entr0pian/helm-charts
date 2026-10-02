@@ -1,0 +1,43 @@
+image:
+  repository: grafana/k6
+  tag: "2.3.0"
+  pullPolicy: IfNotPresent
+
+# One k6 run is a "cycle": `stages` steps, each ramping to a freshly
+# randomized rate over `rampDuration` and holding it for `holdDuration`.
+# The pod runs cycles back to back, so the rates never repeat. Keep the
+# hold longer than Grafana's rate window, or the steps blur into a flat line.
+cycle:
+  stages: 6
+  rampDuration: 1m
+  holdDuration: 2m
+  # A spiking stage jumps to maxRate × spikeMultiplier instead of a value
+  # between minRate and maxRate.
+  spikeMultiplier: 3
+
+# Every target gets its own k6 scenario with an independent rate curve.
+# `name` becomes the scenario name (letters, digits, - and _ only).
+# `requests` are picked at random per request, proportionally to `weight`.
+#
+# targets:
+#   - name: payments
+#     url: http://payments.dev.svc.cluster.local:8080
+#     minRate: 1          # requests per second
+#     maxRate: 20
+#     spikeChance: 0.15   # per-stage probability of a spike
+#     timeout: 5s
+#     maxVUs: 50          # concurrency ceiling while waiting on slow responses
+#     requests:
+#       - path: /
+#         weight: 9
+#       - path: /does-not-exist
+#         weight: 1
+targets: []
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi

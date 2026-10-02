@@ -1,0 +1,12 @@
+apiVersion: v2
+name: traffic-generator
+version: 0.1.0
+appVersion: "2.3.0"
+description: Synthetic HTTP traffic against in-cluster services, with randomly varying rates (k6)
+
+type: application
+
+dependencies:
+  - name: taskapp-common
+    version: "0.1.0"
+    repository: "file://../common"

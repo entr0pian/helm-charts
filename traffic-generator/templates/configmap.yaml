@@ -1,0 +1,30 @@
+{{- $targets := list }}
+{{- range .Values.targets }}
+{{- if not (regexMatch "^[A-Za-z0-9_-]+$" (required "targets[].name is required" .name)) }}
+{{- fail (printf "targets[].name %q may only contain letters, digits, - and _" .name) }}
+{{- end }}
+{{- $requests := list }}
+{{- range (required (printf "targets[%s].requests is required" .name) .requests) }}
+{{- $requests = append $requests (dict "path" (required "requests[].path is required" .path) "method" (.method | default "GET") "weight" (.weight | default 1)) }}
+{{- end }}
+{{- $targets = append $targets (dict
+      "name" .name
+      "url" (required (printf "targets[%s].url is required" .name) .url | trimSuffix "/")
+      "minRate" (.minRate | default 1)
+      "maxRate" (.maxRate | default 10)
+      "spikeChance" (.spikeChance | default 0)
+      "timeout" (.timeout | default "5s")
+      "maxVUs" (.maxVUs | default 50)
+      "requests" $requests) }}
+{{- end }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    {{- include "taskapp.labels" . | nindent 4 }}
+data:
+  traffic.js: |
+{{ .Files.Get "files/traffic.js" | indent 4 }}
+  config.json: |
+    {{- dict "cycle" .Values.cycle "targets" $targets | toPrettyJson | nindent 4 }}

@@ -11,7 +11,8 @@ helm-charts/
 ├── database/       # PostgreSQL StatefulSet and seeder job
 ├── platform/       # Cluster-wide resources: LimitRange, PrometheusRules, Grafana dashboard, ExternalSecrets, ClusterSecretStore
 ├── common/         # Shared library chart (label helpers)
-└── backend-operator/ # Kubebuilder operator: CRD, RBAC, manager deployment
+├── backend-operator/ # Kubebuilder operator: CRD, RBAC, manager deployment
+└── traffic-generator/ # k6 synthetic traffic against in-cluster services
 ```
 
 ## Charts
@@ -43,6 +44,9 @@ Shared library chart. Provides two Helm template helpers used by all other chart
 
 ### `backend-operator`
 Helm packaging for the taskapp backend operator. Installs the `Backend` CRD, RBAC, ServiceAccount, and the operator manager `Deployment`. The operator source lives in [`backend-operator`](https://github.com/entr0pian/backend-operator).
+
+### `traffic-generator`
+Runs one k6 pod that sends synthetic HTTP traffic to every entry in `targets` (in-cluster URL, `minRate`/`maxRate` in requests per second, weighted `requests` paths). Each target gets its own k6 scenario whose rate ramps between randomized steps, sometimes spiking to `maxRate × cycle.spikeMultiplier`. The container re-runs k6 in a loop, so every cycle draws a new curve. Renders nothing when `targets` is empty.
 
 ## Secrets Architecture
 
