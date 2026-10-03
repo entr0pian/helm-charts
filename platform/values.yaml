@@ -41,6 +41,23 @@ crossplaneGithub:
   # Leave empty to skip creating the ExternalSecret.
   secretPath: ""
 
+# The fixed namespace Components live in on management (release-operator's
+# componentNamespace). Management only. See templates/namespace-platform.yaml.
+componentNamespace:
+  create: false
+  name: platform
+
+argocdGithubWebhook:
+  # Path to the secret in AWS Secrets Manager, holding the HMAC secret shared
+  # by ArgoCD and the GitHub webhooks (bootstrap-cluster/terraform/github-webhooks).
+  # Expected JSON format: {"secret": "<value>"}
+  # Needs componentNamespace.create (or the namespace to exist) for the copy
+  # the githubrepository composition reads.
+  # Leave empty to skip creating the ExternalSecrets.
+  secretPath: ""
+  # Endpoint the composition's RepositoryWebhooks point at (argocd-server).
+  url: https://argocd.gerodimos.dev/api/webhook
+
 # Workload clusters this (management) cluster's ArgoCD delivers to, by
 # environment name. Each needs taskapp/clusters/<env> published by its
 # bootstrap-cluster/terraform/<env>-eks workspace and an access entry there
