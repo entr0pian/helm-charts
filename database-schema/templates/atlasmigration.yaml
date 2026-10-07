@@ -1,0 +1,54 @@
+# Applies the migrations in the ConfigMap that the database hasn't run yet, in
+# order. Forward only: no protectedFlows, so Atlas refuses to migrate down if a
+# package with fewer files is ever deployed.
+apiVersion: db.atlasgo.io/v1alpha1
+kind: AtlasMigration
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    {{- include "database-schema.labels" . | nindent 4 }}
+  annotations:
+    {{- include "database-schema.annotations" . | nindent 4 }}
+spec:
+  urlFrom:
+    secretKeyRef:
+      name: {{ include "database-schema.secretName" . }}
+      key: url
+  dir:
+    configMapRef:
+      name: {{ include "database-schema.configMapName" . }}
+  # The throwaway dev database, pinned instead of the operator's default
+  # (postgres:latest). The operator needs devURL whenever devDB.spec is set; it
+  # swaps localhost for the pod's IP. The password only guards an empty
+  # database that lives for one apply.
+  devURL: postgres://postgres:pass@localhost:5432/postgres?sslmode=disable
+  devDB:
+    spec:
+      containers:
+        - name: postgres
+          image: {{ .Values.devDatabase.image }}
+          env:
+            - name: POSTGRES_DB
+              value: postgres
+            - name: POSTGRES_USER
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              value: pass
+          ports:
+            - name: postgres
+              containerPort: 5432
+          startupProbe:
+            exec:
+              command: [pg_isready]
+            periodSeconds: 10
+            failureThreshold: 30
+          resources:
+            {{- toYaml .Values.devDatabase.resources | nindent 12 }}
+          securityContext:
+            runAsUser: 999
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+            seccompProfile:
+              type: RuntimeDefault

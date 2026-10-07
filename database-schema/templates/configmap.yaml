@@ -1,0 +1,16 @@
+{{- if not (.Files.Get "migrations/atlas.sum") -}}
+{{- fail "migrations/atlas.sum is missing: this chart is packaged by the service's CI with its migrations/ added (regenerate it with `atlas migrate hash`)" -}}
+{{- end -}}
+# The packaged migrations/, one key per file plus atlas.sum. Atlas checks the
+# files against atlas.sum before applying anything.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "database-schema.configMapName" . }}
+  labels:
+    {{- include "database-schema.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+    {{- include "database-schema.annotations" . | nindent 4 }}
+data:
+  {{- (.Files.Glob "migrations/*").AsConfig | nindent 2 }}

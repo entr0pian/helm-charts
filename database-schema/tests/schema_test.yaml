@@ -1,0 +1,102 @@
+suite: database-schema
+release:
+  name: example-schema
+  namespace: dev
+set:
+  platform.component: example
+  platform.environment: dev
+  version: 3f9c2e1a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e
+  database.remoteRef: /bindings/dev/databases/example-db
+tests:
+  - it: pulls the connection details from the published location and builds a url
+    template: templates/externalsecret.yaml
+    asserts:
+      - isKind:
+          of: ExternalSecret
+      - equal:
+          path: metadata.name
+          value: example-schema-database
+      - equal:
+          path: spec.dataFrom[0].extract.key
+          value: /bindings/dev/databases/example-db
+      - equal:
+          path: spec.target.template.mergePolicy
+          value: Merge
+      - equal:
+          path: spec.target.template.data.url
+          value: "postgres://{{ .username | urlquery }}:{{ .password | urlquery }}@{{ .endpoint }}:{{ .port }}/{{ .dbname }}?sslmode=require"
+      - equal:
+          path: metadata.annotations["argocd.argoproj.io/sync-wave"]
+          value: "-2"
+
+  - it: fails without the database location
+    template: templates/externalsecret.yaml
+    set:
+      database.remoteRef: ""
+    asserts:
+      - failedTemplate:
+          errorPattern: database.remoteRef is required
+
+  - it: puts every migration file and atlas.sum in the ConfigMap
+    template: templates/configmap.yaml
+    asserts:
+      - isKind:
+          of: ConfigMap
+      - equal:
+          path: metadata.name
+          value: example-schema-migrations
+      - exists:
+          path: data["20261007120000_create_items.sql"]
+      - exists:
+          path: data["20261009093000_add_items_price.sql"]
+      - matchRegex:
+          path: data["atlas.sum"]
+          pattern: "^h1:"
+      - equal:
+          path: metadata.annotations["argocd.argoproj.io/sync-wave"]
+          value: "-1"
+
+  - it: points Atlas at the Secret's url and the ConfigMap
+    template: templates/atlasmigration.yaml
+    asserts:
+      - isKind:
+          of: AtlasMigration
+      - equal:
+          path: metadata.name
+          value: example-schema
+      - equal:
+          path: spec.urlFrom.secretKeyRef
+          value:
+            name: example-schema-database
+            key: url
+      - equal:
+          path: spec.dir.configMapRef.name
+          value: example-schema-migrations
+      - notExists:
+          path: spec.protectedFlows
+
+  - it: pins the dev database instead of postgres:latest
+    template: templates/atlasmigration.yaml
+    asserts:
+      - equal:
+          path: spec.devDB.spec.containers[0].image
+          value: postgres:16
+      - matchRegex:
+          path: spec.devURL
+          pattern: "^postgres://postgres:pass@localhost:5432/postgres"
+
+  - it: stamps component, environment and version on every resource
+    templates:
+      - templates/externalsecret.yaml
+      - templates/configmap.yaml
+      - templates/atlasmigration.yaml
+    asserts:
+      - equal:
+          path: metadata.labels["platform.taskapp.io/component"]
+          value: example
+      - equal:
+          path: metadata.labels["platform.taskapp.io/environment"]
+          value: dev
+      - equal:
+          path: metadata.annotations["platform.taskapp.io/schema-version"]
+          value: 3f9c2e1a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e

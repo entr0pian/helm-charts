@@ -18,8 +18,9 @@ flowchart LR
     SM -.->|External Secrets| D
 ```
 
-Charts are deployed only by the `taskapp-infra` ApplicationSet in
-[argocd](https://github.com/entr0pian/argocd). Whether a chart runs in an
+Charts are deployed by the `taskapp-infra` ApplicationSet in
+[argocd](https://github.com/entr0pian/argocd), except `database-schema` (below).
+Whether a chart runs in an
 environment, at which revision and with which values is decided by its files in
 [application-repositories](https://github.com/entr0pian/application-repositories).
 One chart serves every environment, and the differences live only in values.
@@ -31,6 +32,24 @@ One chart serves every environment, and the differences live only in values.
 | `platform` | every cluster | The per-cluster baseline, below |
 | `crossplane-provider-config` | management | `ProviderConfig`s for Crossplane's AWS, Kubernetes and GitHub providers, each behind its own toggle |
 | `traffic-generator` | per environment | One k6 pod sending synthetic traffic to in-cluster services, so dashboards and the portal show realistic, varying load |
+| `database-schema` | per service, per environment | A service's SQL migrations applied to its database by Atlas Operator, below |
+
+### `database-schema`
+
+Not deployed from this repository. A service's CI packages it together with
+that commit's `migrations/` and publishes it as `<component>-schema`, one
+version per commit (scaffold support in progress). Rendered with a database's
+published location, it creates three things in the service's namespace:
+
+| Resource | Purpose |
+|---|---|
+| `ExternalSecret` | Pulls the connection details from where the Database published them, and adds a `url` for Atlas |
+| `ConfigMap` | The migration files and `atlas.sum`, one key per file |
+| `AtlasMigration` | Applies the files the database hasn't run yet, in order, forward only |
+
+Sync waves put the Secret first, so Atlas never starts without credentials.
+Atlas's throwaway dev database is pinned to the same Postgres major version as
+the database composition, instead of the operator's `postgres:latest`.
 
 ### `platform`
 
@@ -77,4 +96,5 @@ These charts are kept for reference and aren't deployed anywhere:
 ```sh
 helm lint platform
 helm template platform -f <values file>   # render one environment's values
+database-schema/test.sh                   # lint + unit tests, with test migrations (needs helm-unittest)
 ```

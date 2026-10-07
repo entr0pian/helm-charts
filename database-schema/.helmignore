@@ -1,0 +1,5 @@
+# Test-only: the packaged chart carries the service's migrations/, not these.
+tests/
+testdata/
+test.sh
+README.md

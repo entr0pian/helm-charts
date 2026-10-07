@@ -1,0 +1,9 @@
+apiVersion: v2
+name: database-schema
+version: 0.1.0
+description: >-
+  Applies a service's versioned SQL migrations to its database with Atlas
+  Operator. Packaged per service commit by the service's CI, with that
+  commit's migrations/ added, and published as <component>-schema.
+
+type: application

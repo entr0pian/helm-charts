@@ -1,0 +1,28 @@
+# Set by the taskapp-schemas ApplicationSet from the file schema-operator writes
+# (components/<component>/schema/<env>.yaml). Never edited by hand.
+
+platform:
+  component: ""
+  environment: ""
+
+# The service commit the packaged migrations come from (the DatabaseSchema's
+# spec.version). Only stamped on the resources, so the portal can show it.
+version: ""
+
+database:
+  # Where the Database published its connection details in AWS Secrets
+  # Manager (its status.exports): /bindings/<env>/databases/<name>. A location,
+  # never the credentials themselves. Required.
+  remoteRef: ""
+
+# Atlas replays pending migrations on a throwaway Postgres before applying them
+# to the real one. Same major version as the database composition's
+# engineVersion, hardcoded until the Database publishes its version.
+devDatabase:
+  image: postgres:16
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
