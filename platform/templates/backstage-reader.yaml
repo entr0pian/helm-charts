@@ -28,6 +28,12 @@ rules:
   - apiGroups: ["external-secrets.io"]
     resources: ["externalsecrets"]
     verbs: ["get", "list", "watch"]
+  # The deployment card's database schema row: whether the component's
+  # migrations have been applied (status only; the spec names a Secret and a
+  # ConfigMap, never their contents).
+  - apiGroups: ["db.atlasgo.io"]
+    resources: ["atlasmigrations"]
+    verbs: ["get", "list", "watch"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
